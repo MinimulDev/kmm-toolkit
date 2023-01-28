@@ -17,7 +17,7 @@ fun loadVersion(project: Project): String {
 
     val props = getAndLoadLocalProperties(project)
 
-    return props.getProperty("PROJECT_VERSION")
+    return props.getProperty("PROJECT_VERSION", "0.1.0")
 }
 
 fun canPublishLocal(project: Project): Boolean {
