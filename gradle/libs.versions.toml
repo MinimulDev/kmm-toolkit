@@ -1,0 +1,80 @@
+[versions]
+kotlinVersion = "1.7.10"
+androidGradleVersion = "7.4.0"
+composeCoreVersion = "1.3.3"
+composeFoundation = "1.3.1"
+composeMaterial = "1.3.1"
+composePluginVersion = "1.3.0-rc05"
+coroutinesVersion = "1.6.4"
+lifecycleVersion = "2.6.0-alpha04"
+koinVersion = "3.3.2"
+koinCompose = "3.4.1"
+statelyVersion = "1.2.0"
+activityVersion = "1.5.1"
+settingsVersion = "1.0.0-alpha01"
+
+[libraries]
+kotlinGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinVersion" }
+androidGradle = { module = "com.android.tools.build:gradle", version.ref = "androidGradleVersion" }
+composeGradle = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "composePluginVersion" }
+
+composeRuntime = { module = "androidx.compose.runtime:runtime", version.ref = "composeCoreVersion" }
+composeUi = { module = "androidx.compose.ui:ui", version.ref = "composeCoreVersion" }
+composeFoundation = { module = "androidx.compose.foundation:foundation", version.ref = "composeFoundation" }
+composeMaterial = { module = "androidx.compose.material:material", version.ref = "composeMaterial" }
+
+koinCore = { module = "io.insert-koin:koin-core", version.ref = "koinVersion" }
+koinAndroid = { module = "io.insert-koin:koin-android", version.ref = "koinVersion" }
+koinCompose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinCompose" }
+
+coroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesVersion" }
+
+viewModelCore = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleVersion" }
+
+statelyConcurrency = { module = "co.touchlab:stately-concurrency", version.ref = "statelyVersion" }
+statelyIsolate = { module = "co.touchlab:stately-isolate", version.ref = "statelyVersion" }
+statelyIsoCollections = { module = "co.touchlab:stately-iso-collections", version.ref = "statelyVersion" }
+
+androidxActivity = { module = "androidx.activity:activity-ktx", version.ref = "activityVersion" }
+androidxActivityCompose = { module = "androidx.activity:activity-compose", version.ref = "activityVersion" }
+
+settingsCore = { module = "com.russhwolf:multiplatform-settings", version.ref = "settingsVersion" }
+
+[plugins]
+nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "1.1.0" }
+
+[bundles]
+root = [
+    "kotlinGradle",
+    "androidGradle",
+    "composeGradle"
+]
+archAndroidImplementations = [
+    "coroutinesCore",
+    "viewModelCore"
+]
+archCommonImplementations = [
+    "settingsCore",
+    "coroutinesCore",
+    "koinCore",
+    "statelyConcurrency"
+]
+routingCommonImplementations = [
+    "coroutinesCore",
+    "statelyIsolate",
+    "statelyIsoCollections",
+    "statelyConcurrency"
+]
+routingComposeAndroidImplementations = [
+    "androidxActivity",
+    "composeUi",
+    "androidxActivityCompose"
+]
+uiComposeAndroidImplementations = [
+    "composeUi"
+]
+composeApis = [
+    "composeRuntime",
+    "composeFoundation",
+    "composeMaterial"
+]
