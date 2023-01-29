@@ -9,11 +9,11 @@ import org.koin.core.component.inject
 
 abstract class CommonViewModel : PlatformViewModel() {
     @Suppress("MemberVisibilityCanBePrivate")
-    internal val dispatcher: PlatformDispatcher by inject()
+    val dispatcher: PlatformDispatcher by inject()
 
-    internal val scope = CoroutineScope(SupervisorJob() + dispatcher.main)
+    val scope = CoroutineScope(SupervisorJob() + dispatcher.main)
 
-    internal fun <T : Any> Flow<T>.wrap() = wrap(scope)
+    fun <T : Any> Flow<T>.wrap() = wrap(scope)
 
     override fun cleanup() {
         super.cleanup()
