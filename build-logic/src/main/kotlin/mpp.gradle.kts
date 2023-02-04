@@ -45,7 +45,3 @@ kotlin {
         }
     }
 }
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
-    kotlinOptions.freeCompilerArgs = listOf("-Xcontext-receivers")
-}

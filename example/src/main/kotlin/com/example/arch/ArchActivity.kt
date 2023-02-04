@@ -3,10 +3,9 @@ package com.example.arch
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.Button
+import androidx.compose.runtime.*
 import dev.minimul.toolkit.arch.data.models.AtomicJob
 import dev.minimul.toolkit.arch.data.models.Either
 import dev.minimul.toolkit.arch.data.models.UiState
@@ -17,10 +16,8 @@ import dev.minimul.toolkit.arch.network.Api
 import dev.minimul.toolkit.ui.compose.AutoSizeText
 import dev.minimul.toolkit.ui.compose.UiStateContainer
 import dev.minimul.toolkit.ui.compose.between
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.isActive
 import org.koin.androidx.compose.get
 import org.koin.core.component.inject
 import java.util.concurrent.atomic.AtomicInteger
@@ -37,6 +34,7 @@ class ArchActivity : ComponentActivity() {
 
 interface ArchRepository {
     suspend fun incrementAndGetCount(): Either<Int, Exception>
+    fun resetCount(): Either<Int, Exception>
 }
 
 class ArchApi : Api() {
@@ -66,6 +64,11 @@ class ArchRepositoryImpl : Repository(), ArchRepository {
         )
     }
 
+    override fun resetCount(): Either<Int, Exception> {
+        cache.set(0)
+        return Either.Left(0)
+    }
+
     override fun clearData() {
         cache.set(0)
     }
@@ -88,6 +91,14 @@ class GetCount : UseCase() {
 
 }
 
+class ResetCount : UseCase() {
+    private val archRepository: ArchRepository by inject()
+
+    operator fun invoke() {
+        archRepository.resetCount()
+    }
+}
+
 private typealias ArchSuccess = UiState.Success<ArchViewModel.Success, ArchViewModel.Error>
 private typealias ArchError = UiState.Error<ArchViewModel.Success, ArchViewModel.Error>
 
@@ -100,6 +111,7 @@ class ArchViewModel : ViewStateViewModel<ArchViewModel.Success, ArchViewModel.Er
     object Error
 
     private val getCount: GetCount by inject()
+    private val resetCount: ResetCount by inject()
 
     private val loadCountJob = AtomicJob()
 
@@ -107,19 +119,29 @@ class ArchViewModel : ViewStateViewModel<ArchViewModel.Success, ArchViewModel.Er
         loadCountJob.clear()
 
         loadCountJob.value = launch {
-            when (val res = getCount()) {
-                is GetCount.Result.Success -> {
-                    update { prev ->
-                        prev.copy(ui = ArchSuccess(Success(res.count)))
+            while (isActive) {
+                when (val res = getCount()) {
+                    is GetCount.Result.Success -> {
+                        update { prev ->
+                            prev.copy(ui = ArchSuccess(Success(res.count)))
+                        }
+                    }
+                    is GetCount.Result.Error -> {
+                        update { prev ->
+                            prev.copy(ui = ArchError(Error))
+                        }
                     }
                 }
-                is GetCount.Result.Error -> {
-                    update { prev ->
-                        prev.copy(ui = ArchError(Error))
-                    }
-                }
+                delay(1_000)
             }
         }
+    }
+
+    fun reset() {
+        loadCountJob.cleanup()
+        state.cancel()
+        resetCount()
+        loadCount()
     }
 }
 
@@ -128,17 +150,34 @@ private fun Content() {
     val viewModel: ArchViewModel = get()
     val viewState by viewModel.state.collectAsState()
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            viewModel.loadCount()
-            delay(1_000)
+    var subScribeText by remember {
+        mutableStateOf("")
+    }
+
+    viewModel.state.subscribe(onEvent = { value ->
+        subScribeText = "new value ${value.ui}"
+    })
+
+    DisposableEffect(Unit) {
+        viewModel.loadCount()
+        onDispose {
+            viewModel.cleanup()
         }
     }
 
     UiStateContainer(
         state = viewState.ui,
         success = { value ->
-            AutoSizeText(text = "count: $value", fontSizeRange = between(12, 16))
+            Column {
+                AutoSizeText(text = "count: $value", fontSizeRange = between(12, 16))
+                Button(onClick = { viewModel.reset() }) {
+                    AutoSizeText(text = "refresh", fontSizeRange = between(12, 16))
+                }
+                AutoSizeText(
+                    text = "subscribe text: $subScribeText",
+                    fontSizeRange = between(12, 16)
+                )
+            }
         }
     )
 }

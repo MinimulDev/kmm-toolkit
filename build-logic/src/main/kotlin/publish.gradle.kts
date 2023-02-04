@@ -44,12 +44,17 @@ publishing {
 }
 
 signing {
-    val keyId = project.getLocalProperty("signing.keyId") ?: System.getenv("SIGNING_KEY_ID")
-    val secretKey = project.getLocalProperty("signing.secretKey") ?: System.getenv("SIGNING_SECRET_KEY")
-    val password = project.getLocalProperty("signing.password") ?: System.getenv("SIGNING_PASSWORD")
+    val ciRunning = System.getenv("CI_RUNNING")?.toBoolean() ?: false
+    if (!ciRunning) {
+        val keyId = project.getLocalProperty("signing.keyId") ?: System.getenv("SIGNING_KEY_ID")
+        val secretKey =
+            project.getLocalProperty("signing.secretKey") ?: System.getenv("SIGNING_SECRET_KEY")
+        val password =
+            project.getLocalProperty("signing.password") ?: System.getenv("SIGNING_PASSWORD")
 
-    val secretKeyDecoded = String(Base64.getDecoder().decode(secretKey))
+        val secretKeyDecoded = String(Base64.getDecoder().decode(secretKey))
 
-    useInMemoryPgpKeys(keyId, secretKeyDecoded, password)
-    sign(publishing.publications)
+        useInMemoryPgpKeys(keyId, secretKeyDecoded, password)
+        sign(publishing.publications)
+    }
 }
