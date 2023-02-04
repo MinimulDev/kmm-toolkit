@@ -3,7 +3,6 @@ package dev.minimul.toolkit.arch.data.models
 import co.touchlab.stately.concurrency.AtomicReference
 import co.touchlab.stately.concurrency.value
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelChildren
 
 /**
  * Utility class for handling [Job] interactions atomically.
@@ -21,7 +20,7 @@ class AtomicJob {
      * Cancels running instances of job.
      */
     fun clear() {
-        _job.value?.cancelChildren()
+        _job.value?.cancel()
     }
 
     /**

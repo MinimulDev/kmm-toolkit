@@ -3,29 +3,25 @@ package dev.minimul.toolkit.arch.flow
 import co.touchlab.stately.collections.IsoMutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.*
 
-interface CancellationListener {
-    fun cancel()
-}
+fun <T : Any> StateFlow<T>.wrap(scope: CoroutineScope) = StateFlowWrapper(this, scope)
 
-fun <T : Any> Flow<T>.wrap(scope: CoroutineScope) = FlowWrapper(this, scope)
-
-class FlowWrapper<T : Any>(
-    private val origin: Flow<T>,
+class StateFlowWrapper<T : Any>(
+    private val origin: StateFlow<T>,
     private val scope: CoroutineScope,
-) : Flow<T> by origin, CancellationListener {
+) : StateFlow<T> by origin, CancellationListener {
+
     private val jobs = IsoMutableList<Job>()
 
     fun subscribe(
-        onEvent: (T) -> Unit,
-        onError: (Throwable) -> Unit,
-        onComplete: () -> Unit
+        onEvent: (T) -> Unit = {},
+        onError: (Throwable) -> Unit = {}
     ): Job {
         val job = origin
             .onEach { onEvent(it) }
             .catch { onError(it) }
-            .onCompletion { onComplete() }
             .launchIn(scope)
         jobs.add(job)
         return job
@@ -33,11 +29,10 @@ class FlowWrapper<T : Any>(
 
     override fun cancel() {
         jobs.access {
-            it.forEach { job ->
-                job.cancel()
+            it.forEach { sub ->
+                sub.cancel()
             }
         }
         jobs.clear()
     }
-
 }

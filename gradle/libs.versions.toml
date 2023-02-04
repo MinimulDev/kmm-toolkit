@@ -57,7 +57,9 @@ archCommonImplementations = [
     "settingsCore",
     "coroutinesCore",
     "koinCore",
-    "statelyConcurrency"
+    "statelyConcurrency",
+    "statelyIsolate",
+    "statelyIsoCollections",
 ]
 routingCommonImplementations = [
     "coroutinesCore",
