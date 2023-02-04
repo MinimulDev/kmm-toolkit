@@ -3,8 +3,10 @@ package dev.minimul.toolkit.arch.flow
 import co.touchlab.stately.collections.IsoMutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 fun <T : Any> StateFlow<T>.wrap(scope: CoroutineScope) = StateFlowWrapper(this, scope)
 

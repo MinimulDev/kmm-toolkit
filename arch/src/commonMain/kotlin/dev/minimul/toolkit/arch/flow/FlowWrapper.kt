@@ -5,10 +5,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 
-interface CancellationListener {
-    fun cancel()
-}
-
 fun <T : Any> Flow<T>.wrap(scope: CoroutineScope) = FlowWrapper(this, scope)
 
 class FlowWrapper<T : Any>(
